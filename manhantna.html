@@ -1,0 +1,1009 @@
+<html><head><title>Project Manhattan</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/objects/Water.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/objects/Sky.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.6.3/css/foundation.min.css"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/mode/freebasic/freebasic.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/codemirror.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+<!-- Adding Foundation CSS for styling the overlay -->
+<style>
+  body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Courier New', monospace; }
+  canvas { width: 100%; height: 100%; }
+  #info {
+    position: absolute;
+    top: 10px;
+    width: 100%;
+    text-align: center;
+    color: white;
+    pointer-events: none;
+    text-shadow: 1px 1px 2px black;
+  }
+  #metrics {
+    position: absolute;
+    top: 50px;
+    left: 10px;
+    color: white;
+    background-color: rgba(0,0,0,0.5);
+    padding: 10px;
+    border-radius: 5px;
+  }
+  #benchmark {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    color: white;
+    background-color: rgba(0,0,0,0.5);
+    padding: 10px;
+    border-radius: 5px;
+  }
+  #source-code {
+    position: absolute;
+    top: 60px;
+    right: 10px;
+    width: 300px;
+    height: 85%;
+    color: lime;
+    background-color: rgba(0, 0, 0, 0.7);
+    overflow: auto;
+    padding: 10px;
+    border-radius: 5px;
+    font-family: monospace;
+  }
+  #emulator {
+    position: absolute;
+    top: 50%;
+    left: 35%;
+    transform: translate(-50%, -50%);
+    width: 600px;
+    height: 600px;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.7);
+    overflow-y: scroll;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: left;
+  }
+  .emulator-button {
+    margin-top: 10px;
+    text-align: center;
+  }
+  #terminal {
+    font-family: 'Courier New', Courier, monospace;
+    color: lime;
+    background-color: black;
+    overflow: auto;
+    height: 300px;
+    width: 560px;
+    padding: 10px;
+    text-align: left;
+    border-radius: 10px;
+    filter: contrast(120%) brightness(80%);
+    box-shadow: 0 0 8px #00FF00;
+  }
+  #command-input {
+    display: block;
+    margin: 0 auto;
+    width: 90%;
+    background-color: black;
+    color: lime;
+    border: 1px solid green;
+    padding: 5px;
+    font-family: 'Courier New', Courier, monospace;
+  }
+  #graphics-viewport {
+    width: 100%;
+    height: 200px;
+    background-color: black;
+    margin-top: 10px;
+    border: 1px solid #008080;
+    overflow: hidden;
+    border-radius: 10px;
+  }
+  .mini-viewport {
+    width: calc(50% - 5px);
+    height: 150px;
+    background-color: #000;
+    border: 1px solid #008080;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+  #performance-chart {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 300px;
+    height: 150px;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 5px;
+  }
+  #code-editor {
+    position: absolute;
+    top: 60px;
+    right: 320px;
+    width: 400px;
+    height: 85%;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 5px;
+    overflow: hidden;
+  }
+</style>
+</head>
+<body>
+<div id="info">Project Manhattan: Next-Generation MOS 6510-based CPU/GPU SoC Emulator</div>
+<div id="metrics"></div>
+<div id="benchmark"></div>
+<div id="source-code">
+<pre>
+' Project Manhattan: Next-Generation MOS 6510-based CPU/GPU SoC Emulator
+' Version 6900
+' This code implements an advanced MOS 6510-based CPU/GPU System on Chip emulator
+' with integrated 3D graphics capabilities for both retro and modern applications.
+
+#include "mos6510.bi"
+#include "gpu_core.bi"
+#include "3d_engine.bi"
+#include "memory_manager.bi"
+#include "neural_network.bi"
+
+CONST MAX_OBJECTS = 10000
+CONST SCREEN_WIDTH = 3840
+CONST SCREEN_HEIGHT = 2160
+
+TYPE ObjectData
+    model AS MODEL_3D PTR
+    position AS VECTOR3D
+    rotation AS VECTOR3D
+    scale AS SINGLE
+    velocity AS VECTOR3D
+    angularVelocity AS VECTOR3D
+END TYPE
+
+DIM SHARED g_objects(MAX_OBJECTS) AS ObjectData
+DIM SHARED g_objectCount AS INTEGER
+DIM SHARED g_fps AS INTEGER
+DIM SHARED g_frameCounter AS INTEGER
+DIM SHARED g_lastTime AS DOUBLE
+DIM SHARED g_neuralNetwork AS NeuralNetwork
+
+DECLARE SUB InitializeSystem()
+DECLARE SUB LoadResources()
+DECLARE SUB MainLoop()
+DECLARE SUB RenderFrame()
+DECLARE SUB UpdatePhysics()
+DECLARE FUNCTION Benchmark() AS INTEGER
+DECLARE SUB TrainNeuralNetwork()
+
+SUB InitializeSystem()
+    CPU_Init()
+    GPU_Init(SCREEN_WIDTH, SCREEN_HEIGHT, 32)
+    Memory_Init(1024 * 1024 * 1024)  ' 1GB of unified memory
+    _3D_InitEngine()
+    NeuralNetwork_Init(g_neuralNetwork, {64, 128, 256, 128, 64})
+END SUB
+
+SUB LoadResources()
+    DIM AS INTEGER i
+    FOR i = 0 TO MAX_OBJECTS - 1
+        g_objects(i).model = _3D_LoadModel("assets/complex_model.obj")
+        g_objects(i).position = Vector3D(RND * 400 - 200, RND * 400 - 200, RND * 400 - 200)
+        g_objects(i).rotation = Vector3D(0, 0, 0)
+        g_objects(i).scale = RND * 0.5 + 0.5
+        g_objects(i).velocity = Vector3D(RND - 0.5, RND - 0.5, RND - 0.5)
+        g_objects(i).angularVelocity = Vector3D(RND - 0.5, RND - 0.5, RND - 0.5)
+    NEXT i
+    g_objectCount = MAX_OBJECTS
+END SUB
+
+SUB MainLoop()
+    DIM AS DOUBLE currentTime
+    DO
+        currentTime = TIMER
+        IF currentTime - g_lastTime >= 1 THEN
+            g_fps = g_frameCounter
+            g_frameCounter = 0
+            g_lastTime = currentTime
+        END IF
+
+        UpdatePhysics()
+        RenderFrame()
+        
+        g_frameCounter += 1
+        CPU_ExecuteNextInstruction()
+        GPU_SwapBuffers()
+        
+        ' Train neural network in the background
+        IF g_frameCounter MOD 100 = 0 THEN
+            TrainNeuralNetwork()
+        END IF
+    LOOP WHILE NOT CPU_IsHalted()
+END SUB
+
+SUB UpdatePhysics()
+    DIM AS INTEGER i
+    FOR i = 0 TO g_objectCount - 1
+        ' Update position
+        g_objects(i).position = Vector3DAdd(g_objects(i).position, g_objects(i).velocity)
+        
+        ' Update rotation
+        g_objects(i).rotation = Vector3DAdd(g_objects(i).rotation, g_objects(i).angularVelocity)
+        
+        ' Apply simple boundary conditions
+        IF ABS(g_objects(i).position.x) > 200 THEN g_objects(i).velocity.x = -g_objects(i).velocity.x
+        IF ABS(g_objects(i).position.y) > 200 THEN g_objects(i).velocity.y = -g_objects(i).velocity.y
+        IF ABS(g_objects(i).position.z) > 200 THEN g_objects(i).velocity.z = -g_objects(i).velocity.z
+    NEXT i
+END SUB
+
+SUB RenderFrame()
+    GPU_ClearScreen(&HFF000000)  ' Clear to black
+    
+    _3D_SetCamera(Vector3D(0, 0, -400), Vector3D(0, 0, 0))
+    
+    DIM AS INTEGER i
+    FOR i = 0 TO g_objectCount - 1
+        _3D_RenderModel(g_objects(i).model, g_objects(i).position, _
+                        g_objects(i).rotation, g_objects(i).scale)
+    NEXT i
+    
+    GPU_DrawText("FPS: " & g_fps, 10, 10, &HFFFFFFFF)
+    GPU_DrawText("Objects: " & g_objectCount, 10, 30, &HFFFFFFFF)
+    GPU_DrawText("CPU Clock: " & CPU_GetClockSpeed() & " MHz", 10, 50, &HFFFFFFFF)
+    GPU_DrawText("GPU Clock: " & GPU_GetClockSpeed() & " MHz", 10, 70, &HFFFFFFFF)
+    GPU_DrawText("Neural Network: Active", 10, 90, &HFFFFFFFF)
+END SUB
+
+FUNCTION Benchmark() AS INTEGER
+    DIM AS DOUBLE startTime = TIMER
+    DIM AS INTEGER frames = 0
+    DIM AS DOUBLE elapsedTime
+    
+    DO
+        UpdatePhysics()
+        RenderFrame()
+        GPU_SwapBuffers()
+        frames += 1
+        elapsedTime = TIMER - startTime
+    LOOP WHILE elapsedTime < 10  ' Run for 10 seconds
+    
+    RETURN (frames / elapsedTime) * g_objectCount / 1000
+END FUNCTION
+
+SUB TrainNeuralNetwork()
+    DIM AS INTEGER i, j
+    DIM input(63) AS SINGLE
+    DIM output(63) AS SINGLE
+    
+    ' Generate training data based on object positions
+    FOR i = 0 TO 63
+        input(i) = g_objects(i).position.x / 200 + 0.5
+        output(i) = (g_objects(i).position.y + g_objects(i).position.z) / 400 + 0.5
+    NEXT i
+    
+    ' Train the neural network
+    FOR j = 1 TO 10
+        NeuralNetwork_Train(g_neuralNetwork, input(), output())
+    NEXT j
+END SUB
+
+' Main program
+InitializeSystem()
+LoadResources()
+MainLoop()
+
+DIM AS INTEGER score = Benchmark()
+PRINT "Benchmark Score: "; score
+
+CPU_Shutdown()
+GPU_Shutdown()
+Memory_Shutdown()
+NeuralNetwork_Shutdown(g_neuralNetwork)
+END
+</pre>
+</div>
+<div id="emulator">
+  <h4>UNIX Posix Terminal</h4>
+  <pre id="terminal">user@project-manhattan:~$ debug_info
+
+=== 3D Benchmark Debug Data ===
+Objects rendered: 10000
+Resolution: 3840x2160
+Shader complexity: Ultra High
+Post-processing: Enabled (Bloom, SSAO, Ray Tracing)
+Current FPS: 120
+GPU utilization: 98%
+VRAM usage: 7.8 GB
+
+=== MOS 6510-based CPU/GPU SoC Emulator Debug Info ===
+CPU clock: 4.096 MHz
+GPU clock: 1200 MHz
+Memory: 1 GB unified
+Current instruction: LDA #$FF
+Registers:
+  A: $7F  X: $00  Y: $C4
+  PC: $F000  SP: $01FF
+Flags: NV-BDIZC
+       10110000
+Graphics mode: Custom (8K HDR)
+Sprite data:
+  Sprite 0: Enabled, (x:1920, y:1080)
+  Sprite 1: Enabled, (x:960, y:540)
+Copper list: Active, 1024 instructions
+Neural Network: Training (Epoch 1000/10000)
+
+user@project-manhattan:~$</pre>
+  <div class="emulator-button">
+    <button class="button" onclick="startTerminal()">Start Terminal</button>
+    <button class="button" onclick="runCommand()">Run Command</button>
+  </div>
+  <textarea id="command-input" rows="5" cols="35"></textarea>
+  <div id="graphics-viewport"></div>
+  
+  <!-- Updated graphics viewports -->
+  <div style="display: flex; justify-content: space-between; flex-wrap: wrap; margin-top: 20px;">
+    <div class="mini-viewport">
+      <canvas id="vic-ii-demo" width="135" height="135"></canvas>
+    </div>
+    <div class="mini-viewport">
+      <canvas id="svga-demo" width="135" height="135"></canvas>
+    </div>
+    <div class="mini-viewport">
+      <canvas id="copperlists-demo" width="135" height="135"></canvas>
+    </div>
+    <div class="mini-viewport">
+      <canvas id="aga-ham8-demo" width="135" height="135"></canvas>
+    </div>
+  </div>
+</div>
+
+<div id="performance-chart">
+  <canvas id="fps-chart"></canvas>
+</div>
+
+<div id="code-editor"></div>
+
+<script>
+// Set up the scene, camera, and renderer
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 0.5;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+
+// Add orbit controls
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.maxPolarAngle = Math.PI*0.495;
+controls.target.set(0, 10, 0);
+controls.minDistance = 40.0;
+controls.maxDistance = 500.0;
+
+// Create the water
+const waterGeometry = new THREE.PlaneGeometry(10000, 10000);
+const water = new THREE.Water(waterGeometry, {
+  textureWidth: 512,
+  textureHeight: 512,
+  waterNormals: new THREE.TextureLoader().load('https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/waternormals.jpg', function(texture) {
+    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+  }),
+  sunDirection: new THREE.Vector3(),
+  sunColor: 0xffffff,
+  waterColor: 0x001e0f,
+  distortionScale: 3.7,
+  fog: scene.fog !== undefined
+});
+water.rotation.x = -Math.PI / 2;
+water.receiveShadow = true;
+scene.add(water);
+
+// Create the sky
+const sky = new THREE.Sky();
+sky.scale.setScalar(10000);
+scene.add(sky);
+
+const skyUniforms = sky.material.uniforms;
+skyUniforms['turbidity'].value = 10;
+skyUniforms['rayleigh'].value = 2;
+skyUniforms['mieCoefficient'].value = 0.005;
+skyUniforms['mieDirectionalG'].value = 0.8;
+
+const parameters = {
+  elevation: 2,
+  azimuth: 180
+};
+
+const pmremGenerator = new THREE.PMREMGenerator(renderer);
+
+function updateSun() {
+  const phi = THREE.MathUtils.degToRad(90 - parameters.elevation);
+  const theta = THREE.MathUtils.degToRad(parameters.azimuth);
+  const sun = new THREE.Vector3();
+  sun.setFromSphericalCoords(1, phi, theta);
+  sky.material.uniforms['sunPosition'].value.copy(sun);
+  water.material.uniforms['sunDirection'].value.copy(sun).normalize();
+  scene.environment = pmremGenerator.fromScene(sky).texture;
+}
+
+updateSun();
+
+// Create complex geometry for benchmark
+const complexGeometry = new THREE.TorusKnotGeometry(10, 3, 200, 32);
+const complexMaterial = new THREE.MeshStandardMaterial({
+  color: 0xffffff,
+  metalness: 0.9,
+  roughness: 0.1,
+  envMap: scene.environment,
+  envMapIntensity: 1.0
+});
+
+const NUM_OBJECTS = 10000;
+const objects = [];
+
+for (let i = 0; i < NUM_OBJECTS; i++) {
+  const object = new THREE.Mesh(complexGeometry, complexMaterial);
+  object.position.set(
+    Math.random() * 400 - 200,
+    Math.random() * 400 - 200,
+    Math.random() * 400 - 200
+  );
+  object.rotation.set(
+    Math.random() * Math.PI,
+    Math.random() * Math.PI,
+    Math.random() * Math.PI
+  );
+  object.scale.setScalar(Math.random() * 0.5 + 0.5);
+  object.castShadow = true;
+  object.receiveShadow = true;
+  scene.add(object);
+  objects.push(object);
+}
+
+// Add directional light (sun)
+const sunLight = new THREE.DirectionalLight(0xffffaa, 1.5);
+sunLight.position.set(50, 100, 50);
+sunLight.castShadow = true;
+sunLight.shadow.mapSize.width = 2048;
+sunLight.shadow.mapSize.height = 2048;
+sunLight.shadow.camera.near = 1;
+sunLight.shadow.camera.far = 500;
+scene.add(sunLight);
+
+// Set up camera position
+camera.position.set(30, 30, 100);
+
+// Post-processing
+const composer = new THREE.EffectComposer(renderer);
+const renderPass = new THREE.RenderPass(scene, camera);
+composer.addPass(renderPass);
+
+const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+bloomPass.threshold = 0.5;
+bloomPass.strength = 0.8;
+bloomPass.radius = 0.3;
+composer.addPass(bloomPass);
+
+// Metrics display
+const metricsElement = document.getElementById('metrics');
+const benchmarkElement = document.getElementById('benchmark');
+
+let frameCount = 0;
+let lastTime = performance.now();
+let fps = 0;
+
+// FPS Chart
+const fpsChartCtx = document.getElementById('fps-chart').getContext('2d');
+const fpsChart = new Chart(fpsChartCtx, {
+    type: 'line',
+    data: {
+        labels: [],
+        datasets: [{
+            label: 'FPS',
+            data: [],
+            borderColor: 'rgb(75, 192, 192)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+// Animation loop
+function animate() {
+    requestAnimationFrame(animate);
+  
+    const time = performance.now();
+    frameCount++;
+  
+    if (time >= lastTime + 1000) {
+        fps = Math.round((frameCount * 1000) / (time - lastTime));
+        frameCount = 0;
+        lastTime = time;
+    
+        // Update FPS chart
+        fpsChart.data.labels.push(new Date().toLocaleTimeString());
+        fpsChart.data.datasets[0].data.push(fps);
+        if (fpsChart.data.labels.length > 60) {
+            fpsChart.data.labels.shift();
+            fpsChart.data.datasets[0].data.shift();
+        }
+        fpsChart.update();
+    }
+
+    // Rotate and move objects
+    objects.forEach((object, index) => {
+        object.rotation.x += 0.01 * (index % 2 ? 1 : -1);
+        object.rotation.y += 0.01 * (index % 3 ? 1 : -1);
+        object.position.x += Math.sin(time * 0.001 + index) * 0.1;
+        object.position.y += Math.cos(time * 0.002 + index) * 0.1;
+        object.position.z += Math.sin(time * 0.003 + index) * 0.1;
+    });
+
+    // Update water
+    water.material.uniforms['time'].value += 1.0 / 60.0;
+
+    controls.update();
+    composer.render();
+
+    // Update metrics display
+    metricsElement.innerHTML = `
+        FPS: ${fps}<br>
+        Objects: ${NUM_OBJECTS}<br>
+        Resolution: ${window.innerWidth}x${window.innerHeight}
+    `;
+}
+
+animate();
+
+// Benchmark
+let benchmarkDuration = 10000; // 10 seconds
+let benchmarkStartTime = performance.now();
+let totalFrames = 0;
+
+function runBenchmark() {
+    if (performance.now() - benchmarkStartTime < benchmarkDuration) {
+        totalFrames++;
+        requestAnimationFrame(runBenchmark);
+    } else {
+        const averageFPS = Math.round(totalFrames / (benchmarkDuration / 1000));
+        const score = Math.round(averageFPS * NUM_OBJECTS / 1000);
+        benchmarkElement.innerHTML = `
+            Benchmark Results:<br>
+            Average FPS: ${averageFPS}<br>
+            Score: ${score}
+        `;
+    }
+}
+
+runBenchmark();
+
+// Handle window resizing
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    composer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// Start terminal
+function startTerminal() {
+    const terminalOutput = document.getElementById('terminal');
+    terminalOutput.innerHTML = `user@project-manhattan:~$`;
+
+    // Additional terminal logic can be added here
+    // For example, initializing terminal state, etc.
+}
+
+// Run command
+function runCommand() {
+    const commandInput = document.getElementById('command-input').value;
+    const terminalOutput = document.getElementById('terminal');
+    terminalOutput.innerHTML += "\nuser@project-manhattan:~$ " + commandInput;
+
+    // Interpret and execute the command
+    interpretCommand(commandInput);
+}
+
+// Bash compatible command interpreter with ANSI C and FreeBASIC support (emulated)
+function interpretCommand(command) {
+    const terminalOutput = document.getElementById('terminal');
+    const [cmd, ...args] = command.trim().split(/\s+/);
+
+    switch (cmd) {
+        case "clear":
+            terminalOutput.innerHTML = `user@project-manhattan:~$`;
+            break;
+        case "echo":
+            terminalOutput.innerHTML += "\n" + args.join(" ");
+            break;
+        case "start_emulator":
+            terminalOutput.innerHTML += "\nStarting 6510 Emulator...";
+            startEmulator();
+            break;
+        case "run_benchmark":
+            terminalOutput.innerHTML += "\nRunning 3D Benchmark...";
+            runBenchmark();
+            break;
+        case "help":
+            terminalOutput.innerHTML += `
+\nAvailable Commands:
+clear           - Clear the terminal screen.
+echo [message]  - Print a message to the terminal.
+start_emulator  - Start the MOS 6510 emulator.
+run_benchmark   - Run the 3D graphics benchmark.
+help            - Display this help message.
+c [source.c]    - Compile and execute ANSI C source code.
+fb [source.bas] - Compile and execute FreeBASIC source code.
+train_nn        - Train the neural network.
+            `;
+            break;
+        case "c":
+            if (args.length > 0) {
+                const sourceCode = args.join(" ");
+                compileAndRunC(sourceCode);
+            } else {
+                terminalOutput.innerHTML += `\nc: missing argument 'source.c'`;
+            }
+            break;
+        case "fb":
+            if (args.length > 0) {
+                const sourceCode = args.join(" ");
+                compileAndRunFreeBASIC(sourceCode);
+            } else {
+                terminalOutput.innerHTML += `\nfb: missing argument 'source.bas'`;
+            }
+            break;
+        case "train_nn":
+            terminalOutput.innerHTML += "\nTraining Neural Network...";
+            trainNeuralNetwork();
+            break;
+        default:
+            terminalOutput.innerHTML += `\nbash: ${cmd}: command not found`;
+    }
+}
+
+// ANSI C compilation and execution (emulated)
+function compileAndRunC(sourceCode) {
+    const terminalOutput = document.getElementById('terminal');
+    terminalOutput.innerHTML += `\nCompiling and running ${sourceCode}...\n`;
+    terminalOutput.innerHTML += `\n[gcc] Compilation successful.\n`;
+    terminalOutput.innerHTML += `\n[output] Hello, Advanced ANSI C World!\n`;
+}
+
+// FreeBASIC compilation and execution (emulated)
+function compileAndRunFreeBASIC(sourceCode) {
+    const terminalOutput = document.getElementById('terminal');
+    terminalOutput.innerHTML += `\nCompiling and running ${sourceCode}...\n`;
+    terminalOutput.innerHTML += `\n[fbc] Compilation successful.\n`;
+    terminalOutput.innerHTML += `\n[output] Hello, Advanced FreeBASIC World!\n`;
+}
+
+// Neural Network Training (emulated)
+function trainNeuralNetwork() {
+    const terminalOutput = document.getElementById('terminal');
+    terminalOutput.innerHTML += `\nTraining Neural Network...\n`;
+    for (let i = 1; i <= 10; i++) {
+        terminalOutput.innerHTML += `Epoch ${i}/10: Loss: ${(Math.random() * 0.1).toFixed(4)}\n`;
+    }
+    terminalOutput.innerHTML += `Neural Network Training Complete.\n`;
+}
+
+// Graphics Viewport
+const graphicsViewport = document.getElementById('graphics-viewport');
+const graphicsViewportRenderer = new THREE.WebGLRenderer({ antialias: true });
+graphicsViewportRenderer.setPixelRatio(window.devicePixelRatio);
+graphicsViewportRenderer.setSize(graphicsViewport.clientWidth, graphicsViewport.clientHeight);
+graphicsViewport.appendChild(graphicsViewportRenderer.domElement);
+
+const graphicsViewportScene = new THREE.Scene();
+const graphicsViewportCamera = new THREE.PerspectiveCamera(
+    30, 
+    graphicsViewport.clientWidth / graphicsViewport.clientHeight, 
+    0.1, 
+    1000
+);
+graphicsViewportCamera.position.z = 5;
+
+const graphicsViewportGeometry = new THREE.BoxGeometry();
+const graphicsViewportMaterial = new THREE.MeshLambertMaterial({ color: 0x00ff00 });
+const graphicsViewportCube = new THREE.Mesh(graphicsViewportGeometry, graphicsViewportMaterial);
+graphicsViewportScene.add(graphicsViewportCube);
+
+const ambientLight = new THREE.AmbientLight(0x404040); 
+graphicsViewportScene.add(ambientLight);
+const pointLight = new THREE.PointLight(0xffffff, 1, 100);
+pointLight.position.set(10, 10, 10);
+graphicsViewportScene.add(pointLight);
+
+const demos = [
+    function displayVICIIDemo() {
+        graphicsViewportCube.material.color.set(0x00ff00);
+        graphicsViewportCube.rotation.x = 0;
+        graphicsViewportCube.rotation.y = 0;
+        graphicsViewportCube.scale.set(1, 1, 1);
+    },
+    function displaySVGADemo() {
+        graphicsViewportCube.material.color.set(0x0000ff);
+        graphicsViewportCube.rotation.x = Math.PI / 4;
+        graphicsViewportCube.rotation.y = Math.PI / 4;
+        graphicsViewportCube.scale.set(1.5, 1.5, 1.5);
+    },
+    function displayCopperListsDemo() {
+        graphicsViewportCube.material.color.setHSL(Math.random(), 1, 0.5);
+        graphicsViewportCube.rotation.x = Math.sin(Date.now() * 0.001) * Math.PI;
+        graphicsViewportCube.rotation.y = Math.cos(Date.now() * 0.001) * Math.PI;
+        graphicsViewportCube.scale.set(1 + Math.sin(Date.now() * 0.002) * 0.5, 1 + Math.cos(Date.now() * 0.002) * 0.5, 1);
+    },
+    function displayAGAHAM8Demo() {
+        const t = Date.now() * 0.001;
+        graphicsViewportCube.material.color.setRGB(
+            Math.sin(t) * 0.5 + 0.5,
+            Math.sin(t + 2) * 0.5 + 0.5,
+            Math.sin(t + 4) * 0.5 + 0.5
+        );
+        graphicsViewportCube.rotation.x = Math.sin(t * 2) * Math.PI;
+        graphicsViewportCube.rotation.y = Math.cos(t * 2) * Math.PI;
+        graphicsViewportCube.scale.set(1 + Math.sin(t * 3) * 0.5, 1 + Math.cos(t * 3) * 0.5, 1 + Math.sin(t * 3 + 2) * 0.5);
+    }
+];
+
+let currentDemo = 0;
+
+function animateGraphicsViewport() {
+    requestAnimationFrame(animateGraphicsViewport);
+    demos[currentDemo]();
+    graphicsViewportRenderer.render(graphicsViewportScene, graphicsViewportCamera);
+}
+
+animateGraphicsViewport();
+
+setInterval(() => {
+    currentDemo = (currentDemo + 1) % demos.length;
+}, 5000);
+
+// Initialize CodeMirror editor
+const codeEditor = CodeMirror(document.getElementById("code-editor"), {
+    value: `' Project Manhattan: Next-Generation MOS 6510-based CPU/GPU SoC Emulator
+' Version 6.9.0.0
+
+#include "mos6510.bi"
+#include "gpu_core.bi"
+#include "3d_engine.bi"
+#include "neural_network.bi"
+
+CONST MAX_OBJECTS = 10000
+CONST SCREEN_WIDTH = 3840
+CONST SCREEN_HEIGHT = 2160
+
+TYPE ObjectData
+    model AS MODEL_3D PTR
+    position AS VECTOR3D
+    rotation AS VECTOR3D
+    scale AS SINGLE
+    velocity AS VECTOR3D
+    angularVelocity AS VECTOR3D
+END TYPE
+
+DIM SHARED g_objects(MAX_OBJECTS) AS ObjectData
+DIM SHARED g_objectCount AS INTEGER
+DIM SHARED g_neuralNetwork AS NeuralNetwork
+
+DECLARE SUB InitializeSystem()
+DECLARE SUB LoadResources()
+DECLARE SUB MainLoop()
+DECLARE SUB RenderFrame()
+DECLARE SUB UpdatePhysics()
+DECLARE SUB TrainNeuralNetwork()
+
+SUB InitializeSystem()
+    CPU_Init()
+    GPU_Init(SCREEN_WIDTH, SCREEN_HEIGHT, 32)
+    _3D_InitEngine()
+    NeuralNetwork_Init(g_neuralNetwork, {64, 128, 256, 128, 64})
+END SUB
+
+SUB LoadResources()
+    DIM AS INTEGER i
+    FOR i = 0 TO MAX_OBJECTS - 1
+        g_objects(i).model = _3D_LoadModel("assets/complex_model.obj")
+        g_objects(i).position = Vector3D(RND * 400 - 200, RND * 400 - 200, RND * 400 - 200)
+        g_objects(i).rotation = Vector3D(0, 0, 0)
+        g_objects(i).scale = RND * 0.5 + 0.5
+        g_objects(i).velocity = Vector3D(RND - 0.5, RND - 0.5, RND - 0.5)
+        g_objects(i).angularVelocity = Vector3D(RND - 0.5, RND - 0.5, RND - 0.5)
+    NEXT i
+    g_objectCount = MAX_OBJECTS
+END SUB
+
+SUB MainLoop()
+    DO
+        UpdatePhysics()
+        RenderFrame()
+        CPU_ExecuteNextInstruction()
+        GPU_SwapBuffers()
+        
+        IF TIMER MOD 100 = 0 THEN
+            TrainNeuralNetwork()
+        END IF
+    LOOP WHILE NOT CPU_IsHalted()
+END SUB
+
+SUB UpdatePhysics()
+    DIM AS INTEGER i
+    FOR i = 0 TO g_objectCount - 1
+        g_objects(i).position = Vector3DAdd(g_objects(i).position, g_objects(i).velocity)
+        g_objects(i).rotation = Vector3DAdd(g_objects(i).rotation, g_objects(i).angularVelocity)
+        
+        IF ABS(g_objects(i).position.x) > 200 THEN g_objects(i).velocity.x = -g_objects(i).velocity.x
+        IF ABS(g_objects(i).position.y) > 200 THEN g_objects(i).velocity.y = -g_objects(i).velocity.y
+        IF ABS(g_objects(i).position.z) > 200 THEN g_objects(i).velocity.z = -g_objects(i).velocity.z
+    NEXT i
+END SUB
+
+SUB RenderFrame()
+    GPU_ClearScreen(&HFF000000)
+    
+    _3D_SetCamera(Vector3D(0, 0, -400), Vector3D(0, 0, 0))
+    
+    DIM AS INTEGER i
+    FOR i = 0 TO g_objectCount - 1
+        _3D_RenderModel(g_objects(i).model, g_objects(i).position, _
+                        g_objects(i).rotation, g_objects(i).scale)
+    NEXT i
+    
+    GPU_DrawText("FPS: " & GPU_GetFPS(), 10, 10, &HFFFFFFFF)
+    GPU_DrawText("Objects: " & g_objectCount, 10, 30, &HFFFFFFFF)
+    GPU_DrawText("CPU Clock: " & CPU_GetClockSpeed() & " MHz", 10, 50, &HFFFFFFFF)
+    GPU_DrawText("GPU Clock: " & GPU_GetClockSpeed() & " MHz", 10, 70, &HFFFFFFFF)
+    GPU_DrawText("Neural Network: Active", 10, 90, &HFFFFFFFF)
+END SUB
+
+SUB TrainNeuralNetwork()
+    DIM AS INTEGER i
+    DIM input(63) AS SINGLE
+    DIM output(63) AS SINGLE
+    
+    FOR i = 0 TO 63
+        input(i) = g_objects(i).position.x / 200 + 0.5
+        output(i) = (g_objects(i).position.y + g_objects(i).position.z) / 400 + 0.5
+    NEXT i
+    
+    FOR i = 1 TO 10
+        NeuralNetwork_Train(g_neuralNetwork, input(), output())
+    NEXT i
+END SUB
+
+' Main program
+InitializeSystem()
+LoadResources()
+MainLoop()
+
+CPU_Shutdown()
+GPU_Shutdown()
+NeuralNetwork_Shutdown(g_neuralNetwork)
+END`,
+    mode: "freebasic",
+    theme: "monokai",
+    lineNumbers: true,
+    autoCloseBrackets: true,
+    matchBrackets: true,
+    indentUnit: 4,
+    tabSize: 4,
+    indentWithTabs: true,
+    extraKeys: {"Ctrl-Space": "autocomplete"}
+});
+
+// VIC-II Demo
+const viciiCanvas = document.getElementById('vic-ii-demo');
+const viciiCtx = viciiCanvas.getContext('2d');
+
+function drawVICIIDemo() {
+    viciiCtx.fillStyle = '#000000';
+    viciiCtx.fillRect(0, 0, viciiCanvas.width, viciiCanvas.height);
+    
+    const colors = ['#FFFFFF', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF'];
+    
+    for (let i = 0; i < 8; i++) {
+        for (let j = 0; j < 8; j++) {
+            viciiCtx.fillStyle = colors[(i + j) % colors.length];
+            viciiCtx.fillRect(i * 16, j * 16, 16, 16);
+        }
+    }
+    
+    // Sprite
+    viciiCtx.fillStyle = '#FF00FF';
+    viciiCtx.fillRect(Math.sin(Date.now() * 0.005) * 50 + 60, Math.cos(Date.now() * 0.005) * 50 + 60, 16, 16);
+}
+
+// SVGA Demo
+const svgaCanvas = document.getElementById('svga-demo');
+const svgaCtx = svgaCanvas.getContext('2d');
+
+function drawSVGADemo() {
+    svgaCtx.fillStyle = '#000000';
+    svgaCtx.fillRect(0, 0, svgaCanvas.width, svgaCanvas.height);
+    
+    const time = Date.now() * 0.001;
+    
+    for (let i = 0; i < 100; i++) {
+        const x = Math.sin(i * 0.1 + time) * 60 + 67;
+        const y = Math.cos(i * 0.1 + time) * 60 + 67;
+        const hue = (i * 3.6 + time * 50) % 360;
+        
+        svgaCtx.fillStyle = `hsl(${hue}, 100%, 50%)`;
+        svgaCtx.beginPath();
+        svgaCtx.arc(x, y, 3, 0, Math.PI * 2);
+        svgaCtx.fill();
+    }
+}
+
+// Copperlists Demo
+const copperCanvas = document.getElementById('copperlists-demo');
+const copperCtx = copperCanvas.getContext('2d');
+
+function drawCopperListsDemo() {
+    const time = Date.now() * 0.001;
+    
+    for (let y = 0; y < copperCanvas.height; y++) {
+        const r = Math.sin(y * 0.1 + time) * 127 + 128;
+        const g = Math.sin(y * 0.1 + time + 2) * 127 + 128;
+        const b = Math.sin(y * 0.1 + time + 4) * 127 + 128;
+        copperCtx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+        copperCtx.fillRect(0, y, copperCanvas.width, 1);
+    }
+}
+
+// AGA HAM8 Demo
+const agaCanvas = document.getElementById('aga-ham8-demo');
+const agaCtx = agaCanvas.getContext('2d');
+
+function drawAGAHAM8Demo() {
+    const imageData = agaCtx.createImageData(agaCanvas.width, agaCanvas.height);
+    const data = imageData.data;
+    const time = Date.now() * 0.001;
+
+    for (let x = 0; x < agaCanvas.width; x++) {
+        for (let y = 0; y < agaCanvas.height; y++) {
+            const i = (y * agaCanvas.width + x) * 4;
+            data[i] = Math.sin(x * 0.1 + time) * 127 + 128;
+            data[i + 1] = Math.sin(y * 0.1 + time + 2) * 127 + 128;
+            data[i + 2] = Math.sin((x + y) * 0.1 + time + 4) * 127 + 128;
+            data[i + 3] = 255;
+        }
+    }
+
+    agaCtx.putImageData(imageData, 0, 0);
+}
+
+function animateDemos() {
+    drawVICIIDemo();
+    drawSVGADemo();
+    drawCopperListsDemo();
+    drawAGAHAM8Demo();
+    requestAnimationFrame(animateDemos);
+}
+
+animateDemos();
+
+</script>
+</body>
+</html>
